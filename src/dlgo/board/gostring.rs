@@ -18,8 +18,8 @@ const LINE_ENDING: &'static str = "\n";
 #[derive(PartialEq)] // Для сравнения цепочек камней.
 pub struct GoString {
     color: Color,
-    stones: HashSet::<Point>,
-    liberties: HashSet::<Point>,
+    stones: HashSet<Point>,
+    liberties: HashSet<Point>,
 }
 
 impl GoString {
@@ -43,6 +43,19 @@ impl GoString {
     /// Возвращает цвет цепочки камней.
     pub fn get_color(&self) -> Color {
         self.color
+    }
+
+    pub fn get_stones(&self) -> Vec<Point> {
+        let mut stones = Vec::new();
+        for stone in &self.stones {
+            stones.push(stone.clone());
+        }
+
+        stones
+    }
+
+    pub fn get_stones2(&self) -> &HashSet<Point> {
+        &self.stones
     }
 
     /// Число степеней свободы у данной цепочке камней.
@@ -130,19 +143,19 @@ impl GoString {
     }
 }
 
-// Implement `Iterator` for `GoString`.
-impl Iterator for &GoString {
-    // Мы перебираем точки цепочки.
-    type Item = Point;
-
-    // next() is the only required method
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.stones.iter().next() {
-            None => { None }
-            Some(point) => { Some(*point) }
-        }
-    }
-}
+// // Implement `Iterator` for `GoString`.
+// impl Iterator for &GoString {
+//     // Мы перебираем точки цепочки.
+//     type Item = Point;
+//
+//     // next() is the only required method
+//     fn next(&mut self) -> Option<Self::Item> {
+//         match self.stones.iter().next() {
+//             None => { None }
+//             Some(point) => { Some(*point) }
+//         }
+//     }
+// }
 
 // Вводим типаж Write для строк.
 use std::fmt::Write;

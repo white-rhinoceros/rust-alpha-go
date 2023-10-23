@@ -1,7 +1,9 @@
-use crate::dlgo::gotypes::{Move, Color};
+use crate::display::console::print_board;
+use crate::dlgo::gotypes::{Move, Color, Stone, Point};
 use crate::dlgo::board::game::Game;
 
 mod dlgo;
+mod display;
 
 fn main() {
     // Сценарий запуска
@@ -11,8 +13,11 @@ fn main() {
 
     // В тестовых целях делаем один ход.
     {
-        game.apply_move(Move::Pass(Color::Black)).unwrap();
+        let stone: Stone = (Color::Black, Point::new(3, 3));
+        game.apply_move(Move::Play(stone)).unwrap();
     }
+
+    print_board(&game);
 
     // let bots = (
     //     agent::naive::RandomBot::new(),

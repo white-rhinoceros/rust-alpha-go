@@ -6,11 +6,23 @@
 use std::rc::Rc;
 use crate::dlgo::error::FatalError;
 use crate::dlgo::board::goboard::Board;
-use crate::dlgo::gotypes::{Color, Move};
+use crate::dlgo::gotypes::{Color, Move, Point};
+
+/// Точка на игровом поле может иметь следующие типы.
+pub enum PointType {
+    Empty,
+    Stone(Color),
+    //Liberty(Color),
+    //DeadStone(Color),
+}
 
 /// Игра в Go!
-pub(crate) struct Game {
+pub struct Game {
+    // Состояние в игре неизменяемо (!, тип Rc). Это значит, что после
+    // создания состояния, новое состояние можно создать лиш клонированием
+    // старого, совершить ход и заморозить (обернуть в Rc).
     state: Rc<GameState>,
+    board_size: usize,
     is_over: bool,
 }
 
@@ -32,6 +44,7 @@ impl Game {
                 previous_state: None,
                 last_move: None,
             }),
+            board_size,
             is_over: false,
         }
     }
@@ -40,8 +53,7 @@ impl Game {
     ///
     /// # Arguments
     ///
-    /// * `player_move`: Ход игрока - хранится текущий цвет камней (игрока, т.е. цвет
-    /// связанный с ожидаемым ходом).
+    /// * `player_move`: Ход игрока. Ход содержит цвет камней игрока.
     ///
     /// returns: Result<(), RecoverableError>
     pub fn apply_move(&mut self, player_move: Move) -> Result<(), FatalError> {
@@ -59,7 +71,8 @@ impl Game {
                 // Проверим правильность хода: цвет камня, размещаемого на доске, должен
                 // совпадать с цветом камней, которыми должен играть "следующий игрок"
                 // (хранится в поле GameState::next_player_color).
-                if stone.0 != self.state.player_color {
+                let color = stone.0;
+                if color != self.state.player_color {
                     let err = FatalError::new(
                         format!(
                             "Размещаемый камень должен иметь {} цвет",
@@ -73,12 +86,12 @@ impl Game {
                 // Следующее состояние доски: клонируем доску и размещаем камень.
                 let mut next_board = self.state.board.clone();
                 // Транслируем ошибку вызывающей функции.
-                next_board.place_stone(stone.0, stone.1)?;
+                next_board.place_stone(stone)?;
 
                 // Создаем новое состояние в игре.
                 Rc::new(GameState {
                     board: next_board,
-                    player_color: stone.0.other(),
+                    player_color: color.other(),
                     previous_state: Some(self.state.clone()),
                     last_move: Some(player_move),
                 })
@@ -103,8 +116,22 @@ impl Game {
     }
 
     /// Метод определяет, завершена ли игра.
-    fn is_over(&self) -> bool {
+    pub fn is_over(&self) -> bool {
         self.is_over
+    }
+
+    /// Отдает размер доски.
+    pub fn get_size(&self) -> usize {
+        self.board_size
+    }
+
+    pub fn get_point_type(&self, row: usize, col: usize) -> PointType {
+        let point = Point::new(row, col);
+
+        match self.state.board.get_go_string(&point) {
+            None => { PointType::Empty }
+            Some(string) => { PointType::Stone(string.get_color()) }
+        }
     }
 }
 

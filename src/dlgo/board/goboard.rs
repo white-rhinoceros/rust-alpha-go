@@ -7,7 +7,7 @@ use std::collections::{HashMap};
 use std::rc::Rc;
 use crate::dlgo::board::gostring::GoString;
 use crate::dlgo::error::FatalError;
-use crate::dlgo::gotypes::{Color, Point};
+use crate::dlgo::gotypes::{Point, Stone};
 
 /// Структура, представляющая доску для игры в Go. Реализует типаж Clone (в связи
 /// с необходимостью хранить несколько конфигураций доски). Доска содержит цепочки
@@ -40,15 +40,28 @@ impl Board {
         }
     }
 
+    ///
+    ///
+    /// # Arguments
+    ///
+    /// * `point`:
+    ///
+    /// returns: Option<&Rc<GoString>>
+    pub fn get_go_string(&self, point: &Point) -> Option<&Rc<GoString>> {
+        self.grid.get(point)
+    }
+
     /// Размещение камня на доске и проверка количества степеней свободы соседних точек.
     ///
     /// # Arguments
     ///
-    /// * `color`: Цвет камня.
-    /// * `point`: Точка, в которую помещается камень.
+    /// * `stone`: Размещаемый камень.
     ///
     /// returns: ()
-    pub fn place_stone(&mut self, color: Color, point: Point) -> Result<(), FatalError> {
+    pub fn place_stone(&mut self, stone: Stone) -> Result<(), FatalError> {
+        let color = stone.0;
+        let point= stone.1;
+
         if !self.is_on_grid(&point) {
             let err = FatalError::new(format!(
                 "Точка размещения камня ({}, {}) находится за границами сетки доски ({}, {})",
@@ -135,23 +148,23 @@ impl Board {
         let new_string_rc = Rc::new(new_string);
 
         // Ко всем точкам образующих данную объединенную цепочку, привяжем ее саму.
-        for p in new_string_rc.as_ref() {
-            self.grid.insert(p, new_string_rc.clone());
+        for p in new_string_rc.get_stones2() {
+            self.grid.insert(p.clone(), new_string_rc.clone());
         }
 
         // Уменьшим количества степеней свободы соседних цепочек камней противоположного цвета.
         // Поскольку цепочки на доске не изменяемы... Клонируем цепочку и удаляем переданную
         // точку из свобод цепочки. Затем клонированную цепочку снова размещаем на доске.
         for opposite_color_string in &adjacent_opposite_color {
-            let mut as_string: GoString = opposite_color_string.as_ref().clone();
-            as_string.remove_liberty(&point);
+            let mut string: GoString = opposite_color_string.as_ref().clone();
+            string.remove_liberty(&point);
 
             // Если размещения камня приводит к тому, что у цепочки не остается степеней свободы, то
             // удаляем с доски цепочки камней противоположного цвета с нулевой степенью свободы.
-            if as_string.num_liberties() == 0 {
-                self.remove_string(&as_string)
+            if string.num_liberties() == 0 {
+                self.remove_string(&string)
             } else {
-                self.insert_string(as_string);
+                self.insert_string(string);
             }
         }
 
@@ -173,7 +186,7 @@ impl Board {
     fn insert_string(&mut self, string: GoString) {
         let as_rc = Rc::new(string);
 
-        for p in as_rc.as_ref() {
+        for p in as_rc.get_stones() {
             // Метод обновляет значения.
             self.grid.insert(p, as_rc.clone());
         }
