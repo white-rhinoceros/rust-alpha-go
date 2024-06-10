@@ -31,7 +31,7 @@ impl GoString {
     /// * `stones`: Срез точек занятых камнями цепочки.
     /// * `liberties`: Срез из точек представляющих точки свободы группы камней.
     ///
-    /// returns: Self
+    /// Returns: Self
     pub fn new(color: Color, stones: Vec<Point>, liberties: Vec<Point>) -> Self {
         GoString {
             color,
@@ -45,14 +45,20 @@ impl GoString {
         self.color
     }
 
+    /// Возвращает камни принадлежащие цепочки как вектор.
     pub fn get_stones(&self) -> Vec<Point> {
-        let mut stones = Vec::new();
-        for stone in &self.stones {
-            stones.push(stone.clone());
-        }
-
-        stones
+        let stones = self.stones.clone();
+        Vec::from_iter(stones)
     }
+    
+    // pub fn get_stones(&self) -> Vec<Point> {
+    //     let mut stones = Vec::new();
+    //     for stone in &self.stones {
+    //         stones.push(stone.clone());
+    //     }
+    // 
+    //     stones
+    // }
 
     pub fn get_stones2(&self) -> &HashSet<Point> {
         &self.stones
@@ -71,7 +77,7 @@ impl GoString {
     ///
     /// * `point`: Точка на игровом поле (степень свободы).
     ///
-    /// returns: bool
+    /// Returns: bool
     pub fn add_liberty(&mut self, point: Point) {
         self.liberties.insert(point);
     }
@@ -83,7 +89,7 @@ impl GoString {
     ///
     /// * `point`: Точка на игровом поле (степень свободы).
     ///
-    /// returns: bool
+    /// Returns: bool
     pub fn remove_liberty(&mut self, point: &Point) -> bool {
         self.liberties.remove(point)
     }
@@ -95,7 +101,7 @@ impl GoString {
     ///
     /// * `other`: Ссылка на присоединяемую цепочку.
     ///
-    /// returns: self
+    /// Returns: self
     pub fn merged_with(&mut self, other: &Self) -> &Self {
         assert_eq!(
             self.color,
@@ -103,7 +109,7 @@ impl GoString {
             "Не допускается объединение цепочек камней разного цвета"
         );
 
-        // Объединим камни обоих цепочек. Точка реализует типаж Clone.
+        // Объединим камни обеих цепочек. Точка реализует типаж Clone.
         for stone in &other.stones {
             self.stones.insert(stone.clone());
         }
@@ -129,7 +135,7 @@ impl GoString {
     ///
     /// * `other`:
     ///
-    /// returns: bool
+    /// Returns: bool
     pub fn equal(&self, other: &Self) -> bool {
         if
             self.color == other.color
@@ -143,24 +149,10 @@ impl GoString {
     }
 }
 
-// // Implement `Iterator` for `GoString`.
-// impl Iterator for &GoString {
-//     // Мы перебираем точки цепочки.
-//     type Item = Point;
-//
-//     // next() is the only required method
-//     fn next(&mut self) -> Option<Self::Item> {
-//         match self.stones.iter().next() {
-//             None => { None }
-//             Some(point) => { Some(*point) }
-//         }
-//     }
-// }
-
 // Вводим типаж Write для строк.
 use std::fmt::Write;
 
-// Форматный вывод цепочки камней.
+/// Форматный вывод цепочки камней.
 impl std::fmt::Display for GoString {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut message = String::new();

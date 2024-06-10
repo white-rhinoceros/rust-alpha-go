@@ -4,8 +4,8 @@ use console_engine::screen::Screen as Console;
 use console_engine::pixel;
 use console_engine::Color as ConsoleColor;
 
-use crate::dlgo::board::game::{Game, PointType};
-use crate::dlgo::gotypes::Color;
+use crate::dlgo::board::game::{Game};
+use crate::dlgo::gotypes::{DisplayPoint};
 
 
 pub fn print_board(game: &Game) {
@@ -16,27 +16,31 @@ pub fn print_board(game: &Game) {
 
     for row in 1..=game.get_size() {
         for col in 1..=game.get_size() {
-            match game.get_point_type(row, col) {
-                PointType::Empty => {
+            match game.get_display_point(row, col) {
+                DisplayPoint::Empty => {
                     scr.set_pxl(
                         col as i32 - 1,
                         row as i32 - 1,
                         pixel::pxl_fg('.', ConsoleColor::Cyan)
                     );
                 }
-                PointType::Stone(color) => {
-                    let char = if color == Color::Black {
-                        'x'
-                    } else {
-                        'o'
-                    };
 
-                    scr.set_pxl(
-                        col as i32 - 1,
-                        row as i32 - 1,
-                        pixel::pxl_fg(char, ConsoleColor::White)
-                    );
-                }
+                // DisplayPoint::Stone(color) => {
+                //     let char = if color == Color::Black {
+                //         'x'
+                //     } else {
+                //         'o'
+                //     };
+                //
+                //     scr.set_pxl(
+                //         col as i32 - 1,
+                //         row as i32 - 1,
+                //         pixel::pxl_fg(char, ConsoleColor::White)
+                //     );
+                // }
+
+                DisplayPoint::BlackStone => {}
+                DisplayPoint::WhiteStone => {}
             }
         }
     }

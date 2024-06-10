@@ -35,7 +35,6 @@ impl std::fmt::Display for Color {
 }
 
 /// Тип, представляющий точку на игровом поле.
-///
 #[derive(Copy, Clone)]
 #[derive(Eq, PartialEq, Hash)]
 #[derive(Debug)]
@@ -110,3 +109,18 @@ impl std::fmt::Display for Move {
     }
 }
 
+/// То, что мы можем отобразить на игровом поле.
+pub enum DisplayPoint {
+    Empty,
+    BlackStone,
+    WhiteStone,
+
+    // На будущее...
+    //BlackLiberty,
+    //WhiteLiberty,
+    //DeadBlackStone,
+    //DeadWhiteStone,
+}
+
+/// Карта текущего состояния игрового поля. Используется для отображения игры на экране.
+pub type DisplayState = Vec<Vec<DisplayPoint>>;

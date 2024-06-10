@@ -1,0 +1,17 @@
+# Treat all text files without a CR.
+# Autodetect text files.
+* text=auto
+* text eol=lf
+
+# Definitively text files.
+*.txt md
+*.sh text
+*.bash text
+*.rs text
+*.toml text
+
+# Ensure those won't be messed up with.
+*.jpg binary
+*.png binary
+
+

@@ -57,7 +57,7 @@ impl Board {
     ///
     /// * `stone`: Размещаемый камень.
     ///
-    /// returns: ()
+    /// Returns: ()
     pub fn place_stone(&mut self, stone: Stone) -> Result<(), FatalError> {
         let color = stone.0;
         let point= stone.1;

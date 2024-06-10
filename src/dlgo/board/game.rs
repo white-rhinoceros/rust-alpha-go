@@ -6,15 +6,7 @@
 use std::rc::Rc;
 use crate::dlgo::error::FatalError;
 use crate::dlgo::board::goboard::Board;
-use crate::dlgo::gotypes::{Color, Move, Point};
-
-/// Точка на игровом поле может иметь следующие типы.
-pub enum PointType {
-    Empty,
-    Stone(Color),
-    //Liberty(Color),
-    //DeadStone(Color),
-}
+use crate::dlgo::gotypes::{Color, DisplayPoint, DisplayState, Move, Point};
 
 /// Игра в Go!
 pub struct Game {
@@ -33,7 +25,7 @@ impl Game {
     ///
     /// * `board_size`: Размер доски
     ///
-    /// returns: GameState
+    /// Returns: GameState
     pub fn new(board_size: usize) -> Self {
         Game {
             state: Rc::new(GameState {
@@ -55,12 +47,10 @@ impl Game {
     ///
     /// * `player_move`: Ход игрока. Ход содержит цвет камней игрока.
     ///
-    /// returns: Result<(), RecoverableError>
+    /// Returns: Result<(), RecoverableError>
     pub fn apply_move(&mut self, player_move: Move) -> Result<(), FatalError> {
         if self.is_over {
-            let err = FatalError::new(format!(
-                "Игра завершена! Нельзя делать ходы в завершенной игре."
-            ));
+            let err = FatalError::new("Игра завершена! Нельзя делать ходы в завершенной игре.".to_string());
 
             return Err(err);
         }
@@ -73,12 +63,9 @@ impl Game {
                 // (хранится в поле GameState::next_player_color).
                 let color = stone.0;
                 if color != self.state.player_color {
-                    let err = FatalError::new(
-                        format!(
-                            "Размещаемый камень должен иметь {} цвет",
-                            self.state.player_color
-                        )
-                    );
+                    let err = FatalError::new(format!(
+                        "Размещаемый камень должен иметь {} цвет", self.state.player_color
+                    ));
 
                     return Err(err);
                 }
@@ -125,17 +112,43 @@ impl Game {
         self.board_size
     }
 
-    pub fn get_point_type(&self, row: usize, col: usize) -> PointType {
+    /// Возвращает текущее отображаемое состояние точки игрового поля.
+    pub fn get_display_point(&self, row: usize, col: usize) -> DisplayPoint {
         let point = Point::new(row, col);
 
         match self.state.board.get_go_string(&point) {
-            None => { PointType::Empty }
-            Some(string) => { PointType::Stone(string.get_color()) }
+            None => { DisplayPoint::Empty }
+            Some(string) => {
+                match string.get_color() {
+                    Color::Black => { DisplayPoint::BlackStone }
+                    Color::White => { DisplayPoint::WhiteStone }
+                }
+            }
         }
+    }
+
+    /// Возвращает состояние игрового поля, которое в дальнейшем будет отображено
+    /// на экране.
+    pub fn get_display_state(&self) -> DisplayState {
+        // Контейнер строк, т.е. Vec<Vec<DisplayPoint>>.
+        let mut state: DisplayState = Vec::with_capacity(self.board_size);
+
+        // Создаем строки и заполняем текущим состоянием игрового поля.
+        for row_idx in 1..=self.board_size {
+            let mut row: Vec<DisplayPoint> = Vec::with_capacity(self.board_size);
+
+            for col_idx in 1..=self.board_size {
+                row.push(self.get_display_point(row_idx, col_idx));
+            }
+            // Помещаем заполненную строку в контейнер строк.
+            state.push(row);
+        }
+
+        state
     }
 }
 
-/// Вспомогательная структура хранящая состояние игры.
+/// Структура хранящая состояние игры.
 struct GameState {
     board: Board,                      // Текущее состояние доски (к этому состоянию ожидается
                                        // ход цветом, который хранится в поле player_color).
@@ -192,7 +205,7 @@ impl GameState {
     /// * `player`: Игрок делающий ход.
     /// * `player_move`: Ход игрока.
     ///
-    /// returns: bool
+    /// Returns: bool
     fn is_move_self_capture(&self, player: Color, player_move: Move) -> bool {
 
 
@@ -216,7 +229,7 @@ impl GameState {
     /// * `player`: Игрок делающий ход.
     /// * `player_move`: Ход игрока.
     ///
-    /// returns: bool
+    /// Returns: bool
     fn does_move_violate_ko(&self, player: Color, player_move: Move) -> bool {
 
 
@@ -245,7 +258,7 @@ impl GameState {
     ///
     /// * `player_move`: Ход игрока.
     ///
-    /// returns: bool
+    /// Returns: bool
     fn is_valid_move(&self, player_move: Move) -> bool {
 
 
